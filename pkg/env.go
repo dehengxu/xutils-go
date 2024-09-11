@@ -1,4 +1,4 @@
-package xutils
+package pkg
 
 import (
 	"os"
