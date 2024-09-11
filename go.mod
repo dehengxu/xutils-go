@@ -1,3 +1,3 @@
-module dehengxu.github.com/xutils-go
+module xdh/go/xutils
 
 go 1.22.2
