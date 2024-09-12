@@ -11,6 +11,20 @@ type ResultBox[T any] struct {
 	err  error
 }
 
+func (r *ResultBox[T]) OnSuccess(f func(T)) *ResultBox[T] {
+	if r.err == nil {
+		f(r.data.(T))
+	}
+	return r
+}
+
+func (r *ResultBox[T]) OnFailure(f func(error)) *ResultBox[T] {
+	if r.err != nil {
+		f(r.err)
+	}
+	return r
+}
+
 func (r *ResultBox[T]) Value() T {
 	return r.data.(T)
 }
