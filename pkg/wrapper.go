@@ -1,6 +1,8 @@
 package pkg
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type CommonResultInterface interface {
 	GetData() interface{}
@@ -8,7 +10,7 @@ type CommonResultInterface interface {
 }
 
 type ResultBox[T any] struct {
-	CommonResultInterface
+	// CommonResultInterface
 	data interface{}
 	err  error
 	isok bool
@@ -56,6 +58,11 @@ func (r *ResultBox[T]) Error() error {
 	return nil
 }
 
-func Wrap[T any](input T, err error) *ResultBox[T] {
-	return &ResultBox[T]{data: input, err: err}
+func Wrap[T any](input T, state interface{}) *ResultBox[T] {
+	if IsBool(state) {
+		return &ResultBox[T]{data: input, isok: state.(bool)}
+	} else if IsError(state) {
+		return &ResultBox[T]{data: input, err: state.(error)}
+	}
+	panic(fmt.Errorf("state is not bool or error"))
 }
