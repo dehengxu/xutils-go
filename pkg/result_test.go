@@ -12,7 +12,7 @@ func TestResultSuccess(t *testing.T) {
 			t.Errorf("Expected 1, got %d", i)
 		}
 	})
-	result.OnFailure(func(err error) {
+	result.OnFailed(func(err error) {
 		t.Errorf("Expected no error, got %v", err)
 	})
 	if result.Value() != 1 {
@@ -32,7 +32,7 @@ func TestResultFailure(t *testing.T) {
 	result.OnSuccess(func(i int) {
 		t.Errorf("Expected error, got %d", i)
 	})
-	result.OnFailure(func(err error) {
+	result.OnFailed(func(err error) {
 		if err != ErrTest {
 			t.Errorf("Expected ErrTest, got %v", err)
 		}

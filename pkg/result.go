@@ -1,45 +1,90 @@
 package pkg
 
-type CommonResultInterface interface {
-	GetData() interface{}
-	GetError() error
+import "errors"
+
+type CommonResultInterface[T any] interface {
+	Value() T
+	Error() error
+	OnFailed(handler func(e error)) CommonResultInterface[T]
+	OnSuccess(handler func(data T)) CommonResultInterface[T]
+	OnFinal(handler func())
 }
 
 type ResultBox[T any] struct {
-	CommonResultInterface
-	data interface{}
+	CommonResultInterface[T]
+	data T
 	err  error
-}
-
-func (r *ResultBox[T]) OnSuccess(f func(T)) *ResultBox[T] {
-	if r.err == nil {
-		f(r.data.(T))
-	}
-	return r
-}
-
-func (r *ResultBox[T]) OnFailure(f func(error)) *ResultBox[T] {
-	if r.err != nil {
-		f(r.err)
-	}
-	return r
-}
-
-func (r *ResultBox[T]) Value() T {
-	return r.data.(T)
+	isok bool
 }
 
 func (r *ResultBox[T]) ValueOrDefault(d T) T {
-	if r.err != nil || r.data == nil {
+	if r.err != nil {
 		return d
 	}
-	return r.data.(T)
+	return r.data
+}
+
+func (r *ResultBox[T]) HasValue() bool {
+	return r.isok
+}
+
+func (r *ResultBox[T]) Value() T {
+	if r.HasValue() {
+		return r.data
+	} else {
+		var t T
+		return t
+	}
 }
 
 func (r *ResultBox[T]) Error() error {
 	return r.err
 }
 
-func Wrap[T any](input T, err error) *ResultBox[T] {
-	return &ResultBox[T]{data: input, err: err}
+func (r *ResultBox[T]) OnFailed(handler func(e error)) CommonResultInterface[T] {
+	if handler == nil {
+		return r
+	}
+	if !r.HasValue() {
+		handler(r.err)
+	}
+	return r
+}
+
+func (r *ResultBox[T]) OnSuccess(handler func(data T)) CommonResultInterface[T] {
+	if handler == nil {
+		return r
+	}
+	if r.HasValue() {
+		handler(r.data)
+	}
+	return r
+}
+
+func (r *ResultBox[T]) OnFinal(handler func()) {
+	if handler != nil {
+		handler()
+	}
+}
+
+func Wrap[T any](input T, err interface{}) *ResultBox[T] {
+	if value, ok := err.(error); ok {
+		return &ResultBox[T]{
+			data: input,
+			err:  value,
+			isok: func(e error) bool { return e == nil }(value),
+		}
+	} else if value1, ok := err.(bool); ok {
+		return &ResultBox[T]{
+			data: input,
+			err: func(b bool) error {
+				if b {
+					return nil
+				} else {
+					return errors.New("error :false")
+				}
+			}(value1),
+			isok: value1}
+	}
+	return &ResultBox[T]{data: input, err: nil, isok: true}
 }
