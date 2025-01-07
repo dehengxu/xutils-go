@@ -40,7 +40,7 @@ func TestRedis(t *testing.T) {
 
 	// 测试加载数据
 	var loadedUser User
-	loadedUser, err = LoadFromRedis[User](ctx, "user:123")
+	loadedUser, _ = LoadFromRedis[User](ctx, "user:123")
 	if err != nil {
 		fmt.Println("Error loading from Redis:", err)
 		return
