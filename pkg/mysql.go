@@ -3,6 +3,7 @@ package pkg
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"strings"
 	"sync"
 
@@ -88,6 +89,21 @@ func init() {
 
 var db_once sync.Once
 var _db *gorm.DB
+
+func GetMySQLVersion() string {
+	conf := getMysqlConfig()
+	_ = conf
+	db, err := gorm.Open(mysql.Open(conf.GetDSN()), &gorm.Config{})
+	if err != nil {
+		log.Fatal("failed to connect database:", err)
+	}
+
+	var version string
+	db.Raw("SELECT VERSION()").Scan(&version)
+
+	fmt.Println("MySQL Version:", version)
+	return version
+}
 
 func GetDB() (*gorm.DB, error) {
 	db_once.Do(func() {

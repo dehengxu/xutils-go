@@ -9,6 +9,9 @@ type TaskInfo struct {
 }
 
 func TestMysql(t *testing.T) {
+	version := GetMySQLVersion()
+	fmt.Printf("Mysql version: %v", version)
+
 	conf := getMysqlConfig()
 	if conf == nil {
 		t.Error("Expected MysqlConfig, got nil")
